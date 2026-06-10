@@ -3,8 +3,8 @@ import './globals.css';
 import '@livekit/components-styles';
 
 export const metadata: Metadata = {
-  title: 'MeetNow — Online Meeting',
-  description: 'Zoom-like online meeting system',
+  title: 'HASHi — オンライン会議',
+  description: 'HASHi — つながるオンライン会議サービス',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

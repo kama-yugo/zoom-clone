@@ -62,9 +62,9 @@ export default function HomePage() {
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 mb-3">
             <Video className="w-8 h-8 text-purple-400" />
-            <span className="text-3xl font-bold text-white">MeetNow</span>
+            <span className="text-3xl font-bold text-white">HASHi</span>
           </div>
-          <p className="text-gray-400">シンプルで高品質なオンライン会議</p>
+          <p className="text-gray-400">つながる、広がる、オンライン会議</p>
         </div>
 
         {mode === 'home' && (
