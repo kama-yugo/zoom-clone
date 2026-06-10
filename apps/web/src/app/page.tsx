@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Video, Users, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import { createRoom, getRoom } from '@/lib/api';
 
@@ -206,6 +207,11 @@ export default function HomePage() {
             </div>
           </form>
         )}
+        <div className="mt-10 text-center text-xs text-gray-600 space-x-3">
+          <Link href="/help" className="hover:text-gray-400 transition-colors">使い方</Link>
+          <span>·</span>
+          <Link href="/terms" className="hover:text-gray-400 transition-colors">利用規約</Link>
+        </div>
       </div>
     </main>
   );
