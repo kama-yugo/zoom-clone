@@ -10,6 +10,7 @@
   "dependencies": {
     "@livekit/components-react": "^2.6.0",
     "@livekit/components-styles": "^1.1.0",
+    "@livekit/track-processors": "^0.7.2",
     "clsx": "^2.1.0",
     "livekit-client": "^2.5.0",
     "lucide-react": "^0.312.0",
