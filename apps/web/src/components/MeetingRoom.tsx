@@ -217,24 +217,44 @@ function RoomSideEffects({
 
 // ─── Background types ────────────────────────────────────────────────────────
 
-type BgMode = 'none' | 'blur-low' | 'blur-mid' | 'blur-high' | 'bg-office' | 'bg-nature' | 'bg-space';
+type BgMode = 'none' | 'blur-low' | 'blur-mid' | 'blur-high' | 'bg-office' | 'bg-nature' | 'bg-space' | 'bg-sunset';
 
 const BG_OPTIONS: { id: BgMode; label: string; preview: string }[] = [
-  { id: 'none',      label: 'なし',    preview: 'bg-gray-800' },
-  { id: 'blur-low',  label: 'ぼかし弱', preview: 'bg-gradient-to-br from-gray-600 to-gray-800' },
-  { id: 'blur-mid',  label: 'ぼかし中', preview: 'bg-gradient-to-br from-gray-500 to-gray-700' },
-  { id: 'blur-high', label: 'ぼかし強', preview: 'bg-gradient-to-br from-gray-400 to-gray-600' },
-  { id: 'bg-office', label: 'オフィス', preview: 'bg-gradient-to-br from-blue-900 to-blue-700' },
-  { id: 'bg-nature', label: '自然',    preview: 'bg-gradient-to-br from-green-800 to-emerald-600' },
-  { id: 'bg-space',  label: '宇宙',    preview: 'bg-gradient-to-br from-indigo-900 to-purple-900' },
+  { id: 'none',      label: 'なし',     preview: 'bg-gray-800' },
+  { id: 'blur-low',  label: 'ぼかし弱',  preview: 'bg-gradient-to-br from-gray-600 to-gray-800' },
+  { id: 'blur-mid',  label: 'ぼかし中',  preview: 'bg-gradient-to-br from-gray-500 to-gray-700' },
+  { id: 'blur-high', label: 'ぼかし強',  preview: 'bg-gradient-to-br from-gray-400 to-gray-600' },
+  { id: 'bg-office', label: 'オフィス',  preview: 'bg-gradient-to-br from-blue-950 to-blue-700' },
+  { id: 'bg-nature', label: '自然',      preview: 'bg-gradient-to-br from-green-950 to-emerald-600' },
+  { id: 'bg-space',  label: '宇宙',      preview: 'bg-gradient-to-br from-indigo-950 to-purple-900' },
+  { id: 'bg-sunset', label: 'サンセット', preview: 'bg-gradient-to-br from-orange-600 to-pink-800' },
 ];
 
-// Solid-color virtual background images (generated via canvas)
-const BG_COLORS: Record<string, string> = {
-  'bg-office': '#1e3a5f',
-  'bg-nature': '#1a4731',
-  'bg-space':  '#0f0c29',
+// Gradient stops for each virtual background (multi-stop for realism)
+const BG_GRADIENTS: Record<string, { stops: [number, string][]; angle: number }> = {
+  'bg-office': { angle: 145, stops: [[0, '#0a1628'], [0.4, '#1a3a6b'], [1, '#0d2545']] },
+  'bg-nature': { angle: 160, stops: [[0, '#0a1f0f'], [0.4, '#1a5c35'], [0.7, '#2d8a50'], [1, '#0d2b1a']] },
+  'bg-space':  { angle: 135, stops: [[0, '#040410'], [0.3, '#0e0828'], [0.7, '#1a0840'], [1, '#040410']] },
+  'bg-sunset': { angle: 170, stops: [[0, '#1a0533'], [0.3, '#6b2d5e'], [0.6, '#d4546a'], [1, '#f7a441']] },
 };
+
+function createGradientDataUrl(key: string): string {
+  const { angle, stops } = BG_GRADIENTS[key];
+  const canvas = document.createElement('canvas');
+  canvas.width = 1280;
+  canvas.height = 720;
+  const ctx = canvas.getContext('2d')!;
+  const rad = (angle * Math.PI) / 180;
+  const dist = Math.hypot(640, 360);
+  const grad = ctx.createLinearGradient(
+    640 - Math.cos(rad) * dist, 360 - Math.sin(rad) * dist,
+    640 + Math.cos(rad) * dist, 360 + Math.sin(rad) * dist,
+  );
+  stops.forEach(([pos, color]) => grad.addColorStop(pos, color));
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 1280, 720);
+  return canvas.toDataURL('image/jpeg', 0.95);
+}
 
 function BackgroundSelector({
   localParticipant,
@@ -253,22 +273,17 @@ function BackgroundSelector({
 
     setLoading(true);
     try {
+      // GPU delegation + mask edge blur for natural-looking cutout
+      const processorOpts = { delegate: 'GPU' as const };
+
       if (mode === 'none') {
         await track.stopProcessor();
       } else if (mode.startsWith('blur')) {
-        const radius = mode === 'blur-low' ? 5 : mode === 'blur-mid' ? 15 : 25;
-        await track.setProcessor(BackgroundBlur(radius));
+        const radius = mode === 'blur-low' ? 8 : mode === 'blur-mid' ? 18 : 30;
+        await track.setProcessor(BackgroundBlur(radius, processorOpts));
       } else {
-        // Generate a solid-color background as a data URL
-        const color = BG_COLORS[mode] ?? '#1a1a2e';
-        const canvas = document.createElement('canvas');
-        canvas.width = 1280;
-        canvas.height = 720;
-        const ctx = canvas.getContext('2d')!;
-        ctx.fillStyle = color;
-        ctx.fillRect(0, 0, 1280, 720);
-        const dataUrl = canvas.toDataURL('image/jpeg');
-        await track.setProcessor(VirtualBackground(dataUrl));
+        const dataUrl = createGradientDataUrl(mode);
+        await track.setProcessor(VirtualBackground(dataUrl, processorOpts));
       }
       setActive(mode);
     } catch (e) {
