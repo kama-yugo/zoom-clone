@@ -90,7 +90,9 @@ export default function TermsPage() {
         </div>
 
         <div className="mt-10 text-center text-gray-500 text-sm">
-          <Link href="/help" className="hover:text-gray-300 transition-colors underline underline-offset-2">使い方ガイド</Link>
+          <Link href="/help" className="hover:text-gray-300 transition-colors underline underline-offset-2">使い方</Link>
+          <span className="mx-2">·</span>
+          <Link href="/privacy" className="hover:text-gray-300 transition-colors underline underline-offset-2">プライバシーポリシー</Link>
           <span className="mx-2">·</span>
           <Link href="/" className="hover:text-gray-300 transition-colors underline underline-offset-2">トップに戻る</Link>
         </div>

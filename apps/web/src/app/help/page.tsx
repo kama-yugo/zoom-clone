@@ -136,6 +136,8 @@ export default function HelpPage() {
 
         <div className="mt-10 text-center text-gray-500 text-sm">
           <Link href="/terms" className="hover:text-gray-300 transition-colors underline underline-offset-2">利用規約</Link>
+          <span className="mx-2">·</span>
+          <Link href="/privacy" className="hover:text-gray-300 transition-colors underline underline-offset-2">プライバシーポリシー</Link>
         </div>
       </div>
     </main>
