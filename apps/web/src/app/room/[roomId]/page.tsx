@@ -4,8 +4,9 @@ import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { Loader2, Lock, Video } from 'lucide-react';
 import { getRoom, getToken, RoomInfo, TokenResponse } from '@/lib/api';
 import MeetingRoom from '@/components/MeetingRoom';
+import PreJoinScreen from '@/components/PreJoinScreen';
 
-type Stage = 'loading' | 'password' | 'connecting' | 'meeting' | 'error';
+type Stage = 'loading' | 'password' | 'prejoin' | 'connecting' | 'meeting' | 'error';
 
 export default function RoomPage() {
   const { roomId } = useParams<{ roomId: string }>();
@@ -30,7 +31,7 @@ export default function RoomPage() {
         if (info.has_password) {
           setStage('password');
         } else {
-          await fetchToken(roomId, participantName);
+          setStage('prejoin');
         }
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : 'ルームが見つかりません');
@@ -55,7 +56,31 @@ export default function RoomPage() {
   async function handlePasswordSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
-    await fetchToken(roomId, participantName, password);
+    // After password verified, show prejoin
+    setStage('connecting');
+    try {
+      const data = await getToken({ roomId, participantName: participantName, password });
+      setTokenData(data);
+      setStage('prejoin');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'パスワードが違います');
+      setStage('password');
+    }
+  }
+
+  async function handlePrejoinJoin() {
+    if (tokenData) { setStage('meeting'); return; }
+    await fetchToken(roomId, participantName);
+  }
+
+  if (stage === 'prejoin' && roomInfo) {
+    return (
+      <PreJoinScreen
+        roomName={roomInfo.name}
+        participantName={participantName}
+        onJoin={handlePrejoinJoin}
+      />
+    );
   }
 
   if (stage === 'loading' || stage === 'connecting') {
