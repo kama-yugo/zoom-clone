@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import roomsRouter from './routes/rooms';
 import tokenRouter from './routes/token';
+import contactRouter from './routes/contact';
 
 const app = express();
 const PORT = process.env.PORT ?? 4000;
@@ -24,6 +25,7 @@ app.use(express.json());
 
 app.use('/api/rooms', roomsRouter);
 app.use('/api/token', tokenRouter);
+app.use('/api/contact', contactRouter);
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
 

@@ -213,6 +213,8 @@ export default function HomePage() {
           <Link href="/terms" className="hover:text-gray-400 transition-colors">利用規約</Link>
           <span>·</span>
           <Link href="/privacy" className="hover:text-gray-400 transition-colors">プライバシーポリシー</Link>
+          <span>·</span>
+          <Link href="/contact" className="hover:text-gray-400 transition-colors">お問い合わせ</Link>
         </div>
       </div>
     </main>
