@@ -3,7 +3,7 @@ import { ArrowLeft } from 'lucide-react';
 
 export const metadata = { title: 'プライバシーポリシー — HASHi' };
 
-const LAST_UPDATED = '2026年6月11日';
+const LAST_UPDATED = '2026年6月12日';
 
 export default function PrivacyPage() {
   return (
@@ -41,6 +41,8 @@ export default function PrivacyPage() {
                   ['参加者名', '会議作成・参加時に入力した名前', 'サーバー（Supabase）'],
                   ['会議作成日時', 'ルーム作成時のタイムスタンプ', 'サーバー（Supabase）'],
                   ['パスワード（任意）', 'bcryptでハッシュ化して保存。原文は保持しない', 'サーバー（Supabase）'],
+                  ['文字起こしテキスト', '文字起こし機能を有効にした参加者の発言内容と経過時間', 'サーバー（Supabase）'],
+                  ['お問い合わせ内容', 'フォームから送信された名前・メール・本文', 'Formspree経由でメール転送（本サービスには保存しない）'],
                 ].map(([item, desc, loc]) => (
                   <tr key={item} className="hover:bg-purple-900/10">
                     <td className="px-3 py-2 font-medium text-gray-200">{item}</td>
@@ -57,47 +59,49 @@ export default function PrivacyPage() {
             <ul className="list-disc pl-5 mt-2 space-y-1">
               <li>映像・音声データ（リアルタイム中継のみ。録画はユーザーの端末にのみ保存）</li>
               <li>チャットメッセージの内容</li>
-              <li>文字起こしのテキスト</li>
+              <li>絵文字リアクション・挙手の状態</li>
               <li>IPアドレス・位置情報・デバイス情報</li>
               <li>Cookieその他のトラッキング情報</li>
             </ul>
           </Section>
 
-          <Section title="4. 情報の利用目的">
+          <Section title="4. 文字起こしデータの取り扱い">
+            <p>文字起こし機能を有効にした場合、発言内容は以下の目的で保存されます。</p>
+            <ul className="list-disc pl-5 mt-2 space-y-1">
+              <li><strong className="text-white">タイムトラベル機能：</strong>会議に遅れて参加したユーザーが過去の会話をキャッチアップするために使用します</li>
+              <li>文字起こしデータは当該会議のミーティングIDに紐付けて保存されます</li>
+              <li>会議ルームが削除された際に合わせて削除されます</li>
+              <li>文字起こし機能を使用しない場合、発言内容は一切保存されません</li>
+            </ul>
+          </Section>
+
+          <Section title="5. 情報の利用目的">
             <p>収集した情報は以下の目的にのみ使用します。</p>
             <ul className="list-disc pl-5 mt-2 space-y-1">
               <li>会議ルームの識別・管理</li>
               <li>参加者の表示名の表示</li>
               <li>パスワード保護された会議の認証</li>
+              <li>遅刻者への会議内容のキャッチアップ（タイムトラベル機能）</li>
             </ul>
             <p className="mt-2">広告配信・第三者への販売・マーケティングには一切使用しません。</p>
           </Section>
 
-          <Section title="5. 第三者サービスの利用">
+          <Section title="6. 第三者サービスの利用">
             <p>本サービスは以下の第三者サービスを利用しており、それぞれのプライバシーポリシーが適用されます。</p>
             <ul className="list-disc pl-5 mt-2 space-y-2">
-              <li>
-                <span className="font-medium text-white">LiveKit</span> — 映像・音声のリアルタイム中継（SFUサーバー）。
-                通話データはLiveKitのインフラを経由します。
-              </li>
-              <li>
-                <span className="font-medium text-white">Supabase</span> — データベース（PostgreSQL）のホスティング。
-                会議情報の保存に使用します。
-              </li>
-              <li>
-                <span className="font-medium text-white">Vercel</span> — フロントエンドのホスティング。
-              </li>
-              <li>
-                <span className="font-medium text-white">Render</span> — APIサーバーのホスティング。
-              </li>
+              <li><span className="font-medium text-white">LiveKit</span> — 映像・音声・データチャンネルのリアルタイム中継。通話データはLiveKitのインフラを経由します。</li>
+              <li><span className="font-medium text-white">Supabase</span> — データベース（PostgreSQL）のホスティング。会議情報・文字起こしの保存に使用します。</li>
+              <li><span className="font-medium text-white">Vercel</span> — フロントエンドのホスティング。</li>
+              <li><span className="font-medium text-white">Render</span> — APIサーバーのホスティング。</li>
+              <li><span className="font-medium text-white">Formspree</span> — お問い合わせフォームの処理。送信内容は運営者のメールアドレスへ転送されます。</li>
             </ul>
           </Section>
 
-          <Section title="6. データの保持期間">
-            会議ルームの情報（ミーティングID・会議名・参加者名）は、会議終了後も削除されずに保持されます。不要になったルームの削除を希望する場合は、運営者にお問い合わせください。
+          <Section title="7. データの保持期間">
+            会議ルームの情報および文字起こしデータは、明示的に削除されるまで保持されます。削除を希望する場合はお問い合わせください。
           </Section>
 
-          <Section title="7. セキュリティ">
+          <Section title="8. セキュリティ">
             <ul className="list-disc pl-5 space-y-1">
               <li>通信はすべてHTTPS/TLSで暗号化されています</li>
               <li>パスワードはbcryptによりハッシュ化して保存します（原文は保持しません）</li>
@@ -105,11 +109,11 @@ export default function PrivacyPage() {
             </ul>
           </Section>
 
-          <Section title="8. お問い合わせ">
-            プライバシーに関するご質問・ご要望は、サービス運営者までお問い合わせください。
+          <Section title="9. お問い合わせ">
+            プライバシーに関するご質問・データ削除のご要望は、<Link href="/contact" className="text-purple-400 underline">お問い合わせフォーム</Link>からご連絡ください。
           </Section>
 
-          <Section title="9. ポリシーの変更">
+          <Section title="10. ポリシーの変更">
             本ポリシーは必要に応じて更新することがあります。重要な変更がある場合はサービス上でお知らせします。
           </Section>
 
@@ -119,6 +123,8 @@ export default function PrivacyPage() {
           <Link href="/help" className="hover:text-gray-300 transition-colors underline underline-offset-2">使い方</Link>
           <span>·</span>
           <Link href="/terms" className="hover:text-gray-300 transition-colors underline underline-offset-2">利用規約</Link>
+          <span>·</span>
+          <Link href="/changelog" className="hover:text-gray-300 transition-colors underline underline-offset-2">更新履歴</Link>
           <span>·</span>
           <Link href="/" className="hover:text-gray-300 transition-colors underline underline-offset-2">トップに戻る</Link>
         </div>

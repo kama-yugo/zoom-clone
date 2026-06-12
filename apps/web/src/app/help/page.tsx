@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Video, Users, Mic, Monitor, MessageSquare, FileText, ImageIcon, Circle, ArrowLeft, Chrome } from 'lucide-react';
+import { ArrowLeft, Chrome, Video, Users, Mic, Monitor, MessageSquare, FileText, ImageIcon, Circle, QrCode, Hand, Smile, Clock } from 'lucide-react';
 
 export const metadata = { title: 'ヘルプ・使い方 — HASHi' };
 
@@ -12,6 +12,7 @@ const sections = [
       '会議名・あなたの名前を入力',
       'パスワードを設定する場合は入力（任意）',
       '「作成して参加」をクリック',
+      '入室前プレビュー画面でカメラ・マイクを確認してから「参加する」',
       '画面上部のミーティングIDをコピーして参加者に共有',
     ],
   },
@@ -21,18 +22,20 @@ const sections = [
     steps: [
       'トップ画面の「会議に参加」をタップ',
       '主催者から受け取ったミーティングIDを入力',
-      '自分の名前を入力',
-      '「参加する」をクリック',
-      'パスワードが設定されている場合は次の画面で入力',
+      '自分の名前を入力して「参加する」',
+      '入室前プレビュー画面でカメラ・マイクを確認',
+      '「参加する」ボタンで会議に入室',
+      'パスワードが設定されている場合は入力画面が表示されます',
     ],
   },
   {
     icon: Mic,
-    title: '映像・音声の操作',
+    title: '入室前プレビュー',
     steps: [
-      '画面下部のコントロールバーでマイク・カメラのオン/オフを切り替え',
-      'ミュートにしても映像は相手に見えます',
-      'カメラをオフにするとアバターが表示されます',
+      '会議に参加する前にカメラ映像とマイクレベルを確認できます',
+      'カメラ・マイクのオン/オフを切り替えてから入室できます',
+      'マイクレベルバーが動いていれば音声が入っています',
+      '確認できたら「参加する」ボタンで入室します',
     ],
   },
   {
@@ -54,6 +57,26 @@ const sections = [
     ],
   },
   {
+    icon: Hand,
+    title: '挙手・絵文字リアクション',
+    steps: [
+      '画面右下の「挙手」ボタンを押すと全員に通知されます',
+      '参加者リストの名前横に ✋ が表示されます',
+      'もう一度押すと手を下げます',
+      '😊ボタンを押すと絵文字パレットが開きます',
+      '絵文字を選ぶと画面上に浮き上がるアニメーションで全員に届きます',
+    ],
+  },
+  {
+    icon: QrCode,
+    title: 'QRコードで招待',
+    steps: [
+      'ヘッダーの「QR」ボタンをクリック',
+      '表示されたQRコードをスマートフォンで読み取ると会議URLを開けます',
+      '「URLをコピー」でリンクをコピーして共有することもできます',
+    ],
+  },
+  {
     icon: Circle,
     title: '録画',
     steps: [
@@ -61,18 +84,30 @@ const sections = [
       '画面共有ダイアログが開くので録画したいタブや画面を選択',
       '「録画停止」を押すと .webm ファイルが自動ダウンロードされます',
     ],
+    note: '録画を行う前に必ず参加者全員の同意を得てください。',
   },
   {
     icon: FileText,
     title: '文字起こし',
     steps: [
       'ヘッダーの「文字起こし」ボタンをクリック',
-      '右側にパネルが開いたら「開始」を押す',
-      'マイクの使用許可を求められたら「許可」をクリック',
+      '右側パネルの「開始」を押す（マイク許可が必要）',
       '話した言葉がリアルタイムで表示されます',
       '終了後「保存」で .txt ファイルとしてダウンロードできます',
+      '文字起こし中の発言はサーバーに保存され、遅刻者のキャッチアップに活用されます',
     ],
     note: 'Chrome または Microsoft Edge のみ対応しています。',
+  },
+  {
+    icon: Clock,
+    title: 'タイムトラベル（遅刻者キャッチアップ）',
+    steps: [
+      '会議開始後に入室すると、それまでの文字起こしログが右側に自動表示されます',
+      '過去の会話をスクロールして速読できます',
+      '各発言には会議開始からの経過時間（例: +05:30）が表示されます',
+      '読み終えたら「リアルタイムに追いつく」ボタンでライブモードに移行します',
+    ],
+    note: '文字起こし機能を有効にした参加者の発言のみ記録されます。',
   },
   {
     icon: ImageIcon,
@@ -99,12 +134,11 @@ export default function HelpPage() {
           <p className="text-gray-400">HASHi の各機能の使い方を説明します。</p>
         </div>
 
-        {/* Browser support */}
         <div className="flex items-start gap-3 bg-yellow-900/20 border border-yellow-700/40 rounded-xl px-4 py-3 mb-8">
           <Chrome className="w-5 h-5 text-yellow-400 shrink-0 mt-0.5" />
           <div className="text-sm text-yellow-300">
             <span className="font-semibold">推奨ブラウザ：</span> Google Chrome または Microsoft Edge。
-            Safari・Firefox では一部機能（文字起こし等）が利用できない場合があります。
+            Safari・Firefox では文字起こし・タイムトラベル機能が利用できない場合があります。
           </div>
         </div>
 
@@ -134,10 +168,12 @@ export default function HelpPage() {
           ))}
         </div>
 
-        <div className="mt-10 text-center text-gray-500 text-sm">
+        <div className="mt-10 text-center text-gray-500 text-sm space-x-3">
           <Link href="/terms" className="hover:text-gray-300 transition-colors underline underline-offset-2">利用規約</Link>
-          <span className="mx-2">·</span>
+          <span>·</span>
           <Link href="/privacy" className="hover:text-gray-300 transition-colors underline underline-offset-2">プライバシーポリシー</Link>
+          <span>·</span>
+          <Link href="/changelog" className="hover:text-gray-300 transition-colors underline underline-offset-2">更新履歴</Link>
         </div>
       </div>
     </main>

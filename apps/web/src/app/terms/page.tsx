@@ -3,7 +3,7 @@ import { ArrowLeft } from 'lucide-react';
 
 export const metadata = { title: '利用規約 — HASHi' };
 
-const LAST_UPDATED = '2026年6月10日';
+const LAST_UPDATED = '2026年6月12日';
 
 export default function TermsPage() {
   return (
@@ -21,7 +21,7 @@ export default function TermsPage() {
         <div className="space-y-8 text-sm leading-relaxed text-gray-300">
 
           <Section title="第1条（サービスの概要）">
-            HASHi（以下「本サービス」）は、インターネットを通じてビデオ会議・音声通話・テキストチャット等を行えるオンライン会議サービスです。本規約は、本サービスを利用するすべての方（以下「ユーザー」）に適用されます。
+            HASHi（以下「本サービス」）は、インターネットを通じてビデオ会議・音声通話・テキストチャット・画面共有・文字起こし等を行えるオンライン会議サービスです。本規約は、本サービスを利用するすべての方（以下「ユーザー」）に適用されます。
           </Section>
 
           <Section title="第2条（利用条件）">
@@ -51,49 +51,64 @@ export default function TermsPage() {
             <ul className="list-disc pl-5 mt-2 space-y-1">
               <li>録画・録音・文字起こしを行う場合は、<strong className="text-white">会議参加者全員の同意を事前に得てください</strong></li>
               <li>無断録音・録画は、プライバシーの侵害や法令違反となる場合があります</li>
-              <li>録画・文字起こしデータはユーザー自身の端末に保存されます。本サービスはこれらのデータを収集・保存しません</li>
+              <li>文字起こし機能を有効にした場合、その発言テキストは本サービスのサーバーに保存され、同じ会議に遅れて参加したユーザーへのキャッチアップ（タイムトラベル機能）に使用されます</li>
+              <li>録画データはユーザー自身の端末にのみ保存されます。本サービスは録画データを収集・保存しません</li>
             </ul>
           </Section>
 
-          <Section title="第5条（個人情報の取り扱い）">
+          <Section title="第5条（タイムトラベル機能について）">
+            <p>本サービスは、会議に遅れて参加したユーザーが過去の会話内容をキャッチアップできる「タイムトラベル機能」を提供します。</p>
+            <ul className="list-disc pl-5 mt-2 space-y-1">
+              <li>文字起こし機能を有効にした参加者の発言は、会議ごとにサーバーに蓄積されます</li>
+              <li>蓄積された発言ログは、同じ会議に参加しているユーザーのみが閲覧できます</li>
+              <li>会議ルームが削除された場合、関連する文字起こしログも削除されます</li>
+              <li>文字起こし機能を使用することで、この仕組みに同意したものとみなします</li>
+            </ul>
+          </Section>
+
+          <Section title="第6条（個人情報の取り扱い）">
             <p>本サービスが収集・保存する情報は以下に限られます。</p>
             <ul className="list-disc pl-5 mt-2 space-y-1">
               <li>ミーティングID・会議名・参加者名（表示用）</li>
               <li>会議の作成日時</li>
+              <li>文字起こし機能を有効にした参加者の発言テキストと経過時間</li>
             </ul>
             <p className="mt-2">
-              映像・音声・チャットメッセージ・文字起こしデータは本サービスのサーバーに保存されません。これらはユーザーの端末とLiveKitのインフラ（SFUサーバー）を経由してリアルタイムに処理されます。
+              映像・音声・チャットメッセージはサーバーに保存されません。これらはユーザーの端末とLiveKitのインフラを経由してリアルタイムに処理されます。
             </p>
           </Section>
 
-          <Section title="第6条（免責事項）">
+          <Section title="第7条（免責事項）">
             <ul className="list-disc pl-5 space-y-1">
               <li>本サービスは現状有姿で提供されます。動作の完全性・正確性・継続性を保証しません</li>
+              <li>文字起こし機能の精度はブラウザおよびマイク環境に依存します。誤認識が含まれる場合があります</li>
               <li>通信環境・端末性能・ブラウザの仕様により、一部機能が利用できない場合があります</li>
               <li>サービスの停止・変更・終了によってユーザーに損害が生じた場合、運営者は責任を負いません</li>
               <li>ユーザー間のトラブルについて、運営者は一切の責任を負いません</li>
             </ul>
           </Section>
 
-          <Section title="第7条（サービスの変更・終了）">
+          <Section title="第8条（サービスの変更・終了）">
             運営者は事前の通知なく、本サービスの内容の変更または提供の終了を行うことがあります。
           </Section>
 
-          <Section title="第8条（規約の変更）">
+          <Section title="第9条（規約の変更）">
             運営者は必要に応じて本規約を変更できるものとします。変更後も本サービスを継続して利用した場合、改定後の規約に同意したものとみなします。
           </Section>
 
-          <Section title="第9条（準拠法）">
+          <Section title="第10条（準拠法）">
             本規約は日本法を準拠法とします。本サービスに関する紛争については、運営者の所在地を管轄する裁判所を専属的合意管轄裁判所とします。
           </Section>
 
         </div>
 
-        <div className="mt-10 text-center text-gray-500 text-sm">
+        <div className="mt-10 text-center text-gray-500 text-sm space-x-3">
           <Link href="/help" className="hover:text-gray-300 transition-colors underline underline-offset-2">使い方</Link>
-          <span className="mx-2">·</span>
+          <span>·</span>
           <Link href="/privacy" className="hover:text-gray-300 transition-colors underline underline-offset-2">プライバシーポリシー</Link>
-          <span className="mx-2">·</span>
+          <span>·</span>
+          <Link href="/changelog" className="hover:text-gray-300 transition-colors underline underline-offset-2">更新履歴</Link>
+          <span>·</span>
           <Link href="/" className="hover:text-gray-300 transition-colors underline underline-offset-2">トップに戻る</Link>
         </div>
       </div>
