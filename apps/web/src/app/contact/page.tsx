@@ -16,10 +16,11 @@ export default function ContactPage() {
     setError('');
     setLoading(true);
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
-      const res = await fetch(`${apiUrl}/api/contact`, {
+      const endpoint = process.env.NEXT_PUBLIC_FORMSPREE_URL;
+      if (!endpoint) throw new Error('フォームの設定が完了していません');
+      const res = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({ name, email, message }),
       });
       if (!res.ok) {
