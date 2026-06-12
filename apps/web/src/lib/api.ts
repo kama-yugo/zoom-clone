@@ -41,6 +41,33 @@ export async function getRoom(roomId: string): Promise<RoomInfo> {
   return res.json();
 }
 
+export interface TranscriptEntry {
+  id: number;
+  speaker: string;
+  text: string;
+  elapsed_seconds: number;
+  created_at: string;
+}
+
+export async function saveTranscript(params: {
+  roomId: string;
+  speaker: string;
+  text: string;
+  elapsedSeconds: number;
+}): Promise<void> {
+  await fetch(`${API_URL}/api/transcripts`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  }).catch(() => {}); // fire-and-forget、失敗しても会議に影響させない
+}
+
+export async function getTranscripts(roomId: string): Promise<TranscriptEntry[]> {
+  const res = await fetch(`${API_URL}/api/transcripts/${roomId}`);
+  if (!res.ok) return [];
+  return res.json();
+}
+
 export async function getToken(params: {
   roomId: string;
   participantName: string;

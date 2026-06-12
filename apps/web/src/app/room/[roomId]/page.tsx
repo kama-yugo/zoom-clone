@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { Loader2, Lock, Video } from 'lucide-react';
-import { getRoom, getToken, RoomInfo, TokenResponse } from '@/lib/api';
+import { getRoom, getToken, getTranscripts, RoomInfo, TokenResponse, TranscriptEntry } from '@/lib/api';
 import MeetingRoom from '@/components/MeetingRoom';
 import PreJoinScreen from '@/components/PreJoinScreen';
 
@@ -18,16 +18,15 @@ export default function RoomPage() {
   const [stage, setStage] = useState<Stage>('loading');
   const [roomInfo, setRoomInfo] = useState<RoomInfo | null>(null);
   const [tokenData, setTokenData] = useState<TokenResponse | null>(null);
+  const [pastTranscripts, setPastTranscripts] = useState<TranscriptEntry[]>([]);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  // On mount: fetch room info
   useEffect(() => {
     async function init() {
       try {
         const info = await getRoom(roomId);
         setRoomInfo(info);
-
         if (info.has_password) {
           setStage('password');
         } else {
@@ -44,8 +43,12 @@ export default function RoomPage() {
   async function fetchToken(rid: string, name: string, pwd?: string) {
     setStage('connecting');
     try {
-      const data = await getToken({ roomId: rid, participantName: name, password: pwd });
+      const [data, transcripts] = await Promise.all([
+        getToken({ roomId: rid, participantName: name, password: pwd }),
+        getTranscripts(rid),
+      ]);
       setTokenData(data);
+      setPastTranscripts(transcripts);
       setStage('meeting');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'トークンの取得に失敗しました');
@@ -56,11 +59,14 @@ export default function RoomPage() {
   async function handlePasswordSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
-    // After password verified, show prejoin
     setStage('connecting');
     try {
-      const data = await getToken({ roomId, participantName: participantName, password });
+      const [data, transcripts] = await Promise.all([
+        getToken({ roomId, participantName, password }),
+        getTranscripts(roomId),
+      ]);
       setTokenData(data);
+      setPastTranscripts(transcripts);
       setStage('prejoin');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'パスワードが違います');
@@ -126,7 +132,6 @@ export default function RoomPage() {
               <p className="text-gray-400 text-sm">パスワードが必要です</p>
             </div>
           </div>
-
           <div className="mb-4">
             <label className="block text-sm text-gray-400 mb-1">
               <Lock className="inline w-3 h-3 mr-1" />
@@ -141,9 +146,7 @@ export default function RoomPage() {
               className="w-full bg-surface border border-purple-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-purple-500"
             />
           </div>
-
           {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
-
           <button
             type="submit"
             className="w-full py-3 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-semibold"
@@ -155,7 +158,7 @@ export default function RoomPage() {
     );
   }
 
-  if (stage === 'meeting' && tokenData) {
+  if (stage === 'meeting' && tokenData && roomInfo) {
     return (
       <MeetingRoom
         token={tokenData.token}
@@ -163,6 +166,8 @@ export default function RoomPage() {
         roomName={tokenData.roomName}
         participantName={participantName}
         roomId={roomId}
+        roomStartedAt={roomInfo.created_at}
+        pastTranscripts={pastTranscripts}
         onLeave={() => router.push('/')}
       />
     );

@@ -11,6 +11,8 @@ import {
 import { LocalVideoTrack, Track } from 'livekit-client';
 import { BackgroundBlur, VirtualBackground } from '@livekit/track-processors';
 import clsx from 'clsx';
+import { saveTranscript, TranscriptEntry as ApiTranscriptEntry } from '@/lib/api';
+import CatchUpPanel from './CatchUpPanel';
 import {
   Check,
   Circle,
@@ -39,6 +41,8 @@ interface Props {
   roomName: string;
   participantName: string;
   roomId: string;
+  roomStartedAt: string;
+  pastTranscripts: ApiTranscriptEntry[];
   onLeave: () => void;
 }
 
@@ -62,12 +66,13 @@ const MSG_EMOJI      = 'emoji_react';
 
 // ─── MeetingRoom ─────────────────────────────────────────────────────────────
 
-export default function MeetingRoom({ token, serverUrl, roomName, roomId, participantName, onLeave }: Props) {
+export default function MeetingRoom({ token, serverUrl, roomName, roomId, roomStartedAt, pastTranscripts, participantName, onLeave }: Props) {
   const [showParticipants, setShowParticipants] = useState(false);
   const [showBgSelector, setShowBgSelector]     = useState(false);
   const [showTranscript, setShowTranscript]     = useState(false);
   const [showQr, setShowQr]                     = useState(false);
   const [showEmojis, setShowEmojis]             = useState(false);
+  const [showCatchUp, setShowCatchUp]           = useState(pastTranscripts.length > 0);
   const [participantCount, setParticipantCount] = useState(0);
   const [copied, setCopied]                     = useState(false);
   const { isRecording, startRecording, stopRecording } = useRecording();
@@ -184,11 +189,14 @@ export default function MeetingRoom({ token, serverUrl, roomName, roomId, partic
           <RoomSideEffects
             participantName={participantName}
             roomId={roomId}
+            roomStartedAt={roomStartedAt}
             showParticipants={showParticipants}
             showBgSelector={showBgSelector}
             showTranscript={showTranscript}
             showQr={showQr}
             showEmojis={showEmojis}
+            showCatchUp={showCatchUp}
+            pastTranscripts={pastTranscripts}
             onCountChange={setParticipantCount}
             onClosePanel={() => setShowParticipants(false)}
             onCloseBg={() => setShowBgSelector(false)}
@@ -196,6 +204,8 @@ export default function MeetingRoom({ token, serverUrl, roomName, roomId, partic
             onCloseQr={() => setShowQr(false)}
             onToggleEmojis={() => setShowEmojis(v => !v)}
             onCloseEmojis={() => setShowEmojis(false)}
+            onCatchUp={() => setShowCatchUp(false)}
+            onDismissCatchUp={() => setShowCatchUp(false)}
           />
         </LiveKitRoom>
       </div>
@@ -208,11 +218,14 @@ export default function MeetingRoom({ token, serverUrl, roomName, roomId, partic
 function RoomSideEffects({
   participantName,
   roomId,
+  roomStartedAt,
   showParticipants,
   showBgSelector,
   showTranscript,
   showQr,
   showEmojis,
+  showCatchUp,
+  pastTranscripts,
   onCountChange,
   onClosePanel,
   onCloseBg,
@@ -220,14 +233,19 @@ function RoomSideEffects({
   onCloseQr,
   onToggleEmojis,
   onCloseEmojis,
+  onCatchUp,
+  onDismissCatchUp,
 }: {
   participantName: string;
   roomId: string;
+  roomStartedAt: string;
   showParticipants: boolean;
   showBgSelector: boolean;
   showTranscript: boolean;
   showQr: boolean;
   showEmojis: boolean;
+  showCatchUp: boolean;
+  pastTranscripts: ApiTranscriptEntry[];
   onCountChange: (n: number) => void;
   onClosePanel: () => void;
   onCloseBg: () => void;
@@ -235,6 +253,8 @@ function RoomSideEffects({
   onCloseQr: () => void;
   onToggleEmojis: () => void;
   onCloseEmojis: () => void;
+  onCatchUp: () => void;
+  onDismissCatchUp: () => void;
 }) {
   const participants = useParticipants();
   const { localParticipant } = useLocalParticipant();
@@ -373,8 +393,16 @@ function RoomSideEffects({
       )}
 
       {showBgSelector && <BackgroundSelector localParticipant={localParticipant} onClose={onCloseBg} />}
-      {showTranscript && <TranscriptPanel participantName={participantName} onClose={onCloseTranscript} />}
+      {showTranscript && <TranscriptPanel participantName={participantName} roomId={roomId} roomStartedAt={roomStartedAt} onClose={onCloseTranscript} />}
       {showQr && <QrPanel roomId={roomId} onClose={onCloseQr} />}
+      {showCatchUp && (
+        <CatchUpPanel
+          entries={pastTranscripts}
+          roomStartedAt={roomStartedAt}
+          onCatchUp={onCatchUp}
+          onDismiss={onDismissCatchUp}
+        />
+      )}
     </>
   );
 }
@@ -428,9 +456,9 @@ function QrPanel({ roomId, onClose }: { roomId: string; onClose: () => void }) {
 
 // ─── TranscriptPanel ─────────────────────────────────────────────────────────
 
-function TranscriptPanel({ participantName, onClose }: { participantName: string; onClose: () => void }) {
+function TranscriptPanel({ participantName, roomId, roomStartedAt, onClose }: { participantName: string; roomId: string; roomStartedAt: string; onClose: () => void }) {
   const [isListening, setIsListening] = useState(false);
-  const { entries, exportTxt, clearEntries } = useTranscription(participantName, isListening);
+  const { entries, exportTxt, clearEntries } = useTranscription(participantName, roomId, roomStartedAt, isListening);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const isSupported = typeof window !== 'undefined' &&
@@ -490,7 +518,7 @@ function TranscriptPanel({ participantName, onClose }: { participantName: string
 
 // ─── useTranscription ────────────────────────────────────────────────────────
 
-function useTranscription(speakerName: string, enabled: boolean) {
+function useTranscription(speakerName: string, roomId: string, roomStartedAt: string, enabled: boolean) {
   const [entries, setEntries] = useState<TranscriptEntry[]>([]);
   const interimIdRef = useRef('');
   const enabledRef = useRef(enabled);
@@ -512,6 +540,8 @@ function useTranscription(speakerName: string, enabled: boolean) {
         if (result.isFinal) {
           const removedId = interimIdRef.current;
           interimIdRef.current = '';
+          const elapsedSeconds = Math.floor((Date.now() - new Date(roomStartedAt).getTime()) / 1000);
+          saveTranscript({ roomId, speaker: speakerName, text, elapsedSeconds });
           setEntries(prev => [...prev.filter(e => e.id !== removedId),
             { id: `${Date.now()}`, speaker: speakerName, text, timestamp: new Date(), isFinal: true }]);
         } else {
