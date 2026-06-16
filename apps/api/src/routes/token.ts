@@ -41,7 +41,7 @@ router.post('/', async (req: Request, res: Response) => {
     const token = new AccessToken(apiKey, apiSecret, {
       identity: participantName,
       name: participantName,  // displayed in chat and participant list
-      ttl: '4h',
+      ttl: '24h',
     });
 
     token.addGrant({
