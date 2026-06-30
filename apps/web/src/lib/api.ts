@@ -19,6 +19,7 @@ export async function createRoom(params: {
   name: string;
   hostName: string;
   password?: string;
+  userId?: string;
 }): Promise<{ room_id: string; name: string }> {
   const res = await fetch(`${API_URL}/api/rooms`, {
     method: 'POST',

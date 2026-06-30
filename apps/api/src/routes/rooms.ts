@@ -6,12 +6,12 @@ import pool from '../db';
 const router = Router();
 
 function generateRoomId(): string {
-  return randomBytes(5).toString('hex'); // 10-char hex string
+  return randomBytes(5).toString('hex');
 }
 
 // POST /api/rooms  — create a new room
 router.post('/', async (req: Request, res: Response) => {
-  const { name, hostName, password } = req.body;
+  const { name, hostName, password, userId } = req.body;
 
   if (!name || !hostName) {
     return res.status(400).json({ error: 'name and hostName are required' });
@@ -22,10 +22,10 @@ router.post('/', async (req: Request, res: Response) => {
 
   try {
     const result = await pool.query(
-      `INSERT INTO rooms (room_id, name, password_hash, host_name)
-       VALUES ($1, $2, $3, $4)
+      `INSERT INTO rooms (room_id, name, password_hash, host_name, user_id)
+       VALUES ($1, $2, $3, $4, $5)
        RETURNING room_id, name, host_name, created_at`,
-      [roomId, name, passwordHash, hostName]
+      [roomId, name, passwordHash, hostName, userId ?? null]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -34,7 +34,25 @@ router.post('/', async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/rooms/:roomId  — get room info (no password returned)
+// GET /api/rooms?userId=xxx  — get rooms by user
+router.get('/', async (req: Request, res: Response) => {
+  const { userId } = req.query;
+  if (!userId) return res.status(400).json({ error: 'userId is required' });
+
+  try {
+    const result = await pool.query(
+      `SELECT room_id, name, created_at, (password_hash IS NOT NULL) AS has_password
+       FROM rooms WHERE user_id = $1 ORDER BY created_at DESC`,
+      [userId]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch rooms' });
+  }
+});
+
+// GET /api/rooms/:roomId  — get room info
 router.get('/:roomId', async (req: Request, res: Response) => {
   const { roomId } = req.params;
 
@@ -57,10 +75,9 @@ router.get('/:roomId', async (req: Request, res: Response) => {
   }
 });
 
-// DELETE /api/rooms/:roomId  — delete room
+// DELETE /api/rooms/:roomId
 router.delete('/:roomId', async (req: Request, res: Response) => {
   const { roomId } = req.params;
-
   try {
     await pool.query('DELETE FROM rooms WHERE room_id = $1', [roomId]);
     res.status(204).send();

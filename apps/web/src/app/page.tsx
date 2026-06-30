@@ -1,9 +1,11 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Video, Users, Lock, ArrowRight, Loader2 } from 'lucide-react';
+import { Video, Users, Lock, ArrowRight, Loader2, LayoutDashboard } from 'lucide-react';
 import { createRoom, getRoom } from '@/lib/api';
+import { createClient } from '@/lib/supabase';
+import type { User } from '@supabase/supabase-js';
 
 type Mode = 'home' | 'create' | 'join';
 
@@ -12,15 +14,37 @@ export default function HomePage() {
   const [mode, setMode] = useState<Mode>('home');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getSession().then(({ data }) => {
+      const u = data.session?.user ?? null;
+      setUser(u);
+      if (u?.user_metadata?.full_name) {
+        setCreateHost(u.user_metadata.full_name);
+        setJoinName(u.user_metadata.full_name);
+      }
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      const u = session?.user ?? null;
+      setUser(u);
+      if (u?.user_metadata?.full_name) {
+        setCreateHost(u.user_metadata.full_name);
+        setJoinName(u.user_metadata.full_name);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   // create form
   const [createName, setCreateName] = useState('');
   const [createHost, setCreateHost] = useState('');
   const [createPassword, setCreatePassword] = useState('');
+  const [joinName, setJoinName] = useState('');
+  const [joinRoomId, setJoinRoomId] = useState('');
 
   // join form
-  const [joinRoomId, setJoinRoomId] = useState('');
-  const [joinName, setJoinName] = useState('');
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -31,6 +55,7 @@ export default function HomePage() {
         name: createName,
         hostName: createHost,
         password: createPassword || undefined,
+        userId: user?.id,
       });
       router.push(`/room/${room.room_id}?name=${encodeURIComponent(createHost)}`);
     } catch (err: unknown) {
@@ -66,6 +91,22 @@ export default function HomePage() {
             <span className="text-3xl font-bold text-white">HASHi</span>
           </div>
           <p className="text-gray-400">つながる、広がる、オンライン会議</p>
+
+          {user ? (
+            <div className="flex items-center justify-center gap-3 mt-4">
+              {user.user_metadata?.avatar_url && (
+                <img src={user.user_metadata.avatar_url} className="w-7 h-7 rounded-full" alt="avatar" />
+              )}
+              <span className="text-sm text-gray-300">{user.user_metadata?.full_name ?? user.email}</span>
+              <Link href="/dashboard" className="flex items-center gap-1 text-xs text-purple-400 hover:text-purple-300 transition-colors">
+                <LayoutDashboard className="w-3.5 h-3.5" /> マイルーム
+              </Link>
+            </div>
+          ) : (
+            <Link href="/auth" className="inline-block mt-4 text-sm text-purple-400 hover:text-purple-300 underline underline-offset-2 transition-colors">
+              ログインしてマイルームを使う
+            </Link>
+          )}
         </div>
 
         {mode === 'home' && (
